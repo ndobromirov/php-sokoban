@@ -57,7 +57,7 @@ abstract class BaseProvider implements ProviderInterface
     protected function getInputStream()
     {
         $stream = fopen('php://stdin', 'r');
-        stream_set_blocking($this->stream, 0);
+        stream_set_blocking($stream, 0);
         return $stream;
     }
 
