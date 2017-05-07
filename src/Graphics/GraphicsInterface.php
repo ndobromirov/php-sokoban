@@ -8,11 +8,13 @@
 
 namespace Sokoban\Graphics;
 
+use Sokoban\GameState;
+
 /**
  *
  * @author ndobromirov
  */
 interface GraphicsInterface
 {
-    public function render($field);
+    public function render(GameState $state, $field);
 }

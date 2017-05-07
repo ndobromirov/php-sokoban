@@ -9,6 +9,7 @@
 namespace Sokoban\Graphics;
 
 use Sokoban\Objects\Base as GameObject;
+use Sokoban\GameState;
 
 /**
  * Description of Renderer
@@ -42,7 +43,7 @@ class Console extends Base
     protected function initBuffer($rows, $cols)
     {
         $empty = $this->mapping[\Sokoban\Objects\NullObject::class];
-        $this->buffer = array_pad([], $rows, str_pad('', $cols, $empty));
+        $this->buffer = array_pad([], $rows + 1, str_pad('', $cols, $empty));
     }
 
     protected function displayBuffer()
@@ -58,7 +59,18 @@ class Console extends Base
 
     protected function renderGameObject(GameObject $object, $row, $col)
     {
-        $this->buffer[$row][$col] = $this->mapping[get_class($object)];
+        $this->buffer[$row + 1][$col] = $this->mapping[get_class($object)];
+    }
+
+    protected function renderState(GameState $state)
+    {
+        $lineLength = count($this->buffer[1]);
+        $empty = $this->mapping[\Sokoban\Objects\NullObject::class];
+        $message = implode(', ', [
+            "Moves: {$state->getMoves()}",
+            "Play time: {$state->getPlayTime()}",
+        ]);
+        $this->buffer[0] = str_split(str_pad($message, $lineLength, $empty));
     }
 
     private function clearScreen()

@@ -22,15 +22,15 @@ class Base implements EventAwareInterface
     use EventsTrait;
 
     protected static $directions = [
-        ProviderInterface::DIRECTION_UP => [0, -1],
-        ProviderInterface::DIRECTION_DOWN => [0, 1],
-        ProviderInterface::DIRECTION_LEFT => [-1, 0],
-        ProviderInterface::DIRECTION_RIGHT => [1, 0],
+        ProviderInterface::DIRECTION_UP => [-1, 0],
+        ProviderInterface::DIRECTION_DOWN => [1, 0],
+        ProviderInterface::DIRECTION_LEFT => [0, -1],
+        ProviderInterface::DIRECTION_RIGHT => [0, 1],
         ProviderInterface::DIRECTION_NONE => [0, 0],
     ];
 
-    private $row;
-    private $col;
+    protected $row;
+    protected $col;
 
     public function __construct($row, $col)
     {
@@ -55,5 +55,24 @@ class Base implements EventAwareInterface
     public function isMovable()
     {
         return false;
+    }
+
+    protected function getDestination($direction, $point = null)
+    {
+        list($rowDelta, $colDelta) = self::$directions[$direction];
+        list ($row, $col) = $point ? $point : $this->getCoordinates();
+        return [$row + $rowDelta, $col + $colDelta];
+    }
+
+    public function move(Game $game, $direction)
+    {
+        $destination = $this->getDestination($direction);
+        if ($this->isMovable() && $game->isFree($destination)) {
+            $oldCoordinates = $this->getCoordinates();
+
+            $this->trigger('before-move', [$this, $destination]);
+            list ($this->row, $this->col) = $destination;
+            $this->trigger('after-move', [$this, $oldCoordinates]);
+        }
     }
 }

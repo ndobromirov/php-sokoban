@@ -38,30 +38,17 @@ class Player extends Base
         return $this->id;
     }
 
-    public function move($direction)
+    public function isMovable()
     {
-        list($newX, $newY) = self::$directions[$direction];
-        if ($this->x != $newX || $this->y != $newY) {
-            $this->trigger('push', [$this, $direction]);
-
-            $this->x += $newX;
-            $this->y += $newY;
-        }
+        return true;
     }
 
-    public function handleInput(Game $game, $direction)
+    public function move(Game $game, $direction)
     {
-        $oldCoordinates = $this->getCoordinates();
-        list($rowDelta, $colDelta) = self::$directions[$direction];
-        $destination = [$this->row + $rowDelta, $this->col + $colDelta];
-
         // Make everything move away for us.
         $this->trigger('push', [$this, $direction]);
 
-        if ($game->isFree($destination)) {
-            $this->trigger('before-move', [$this, $destination]);
-            list ($this->row, $this->col) = $destination;
-            $this->trigger('after-move', [$this, $oldCoordinates]);
-        }
+        // Then move when it's free (if possible).
+        parent::move($game, $direction);
     }
 }

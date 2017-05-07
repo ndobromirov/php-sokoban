@@ -57,7 +57,7 @@ class Game implements utils\EventAwareInterface
 
         $this->field = [];
         $this->width  = (int) exec('tput cols');
-        $this->height = (int) exec('tput lines') - 1;
+        $this->height = (int) exec('tput lines') - 2;
 
         $this->state = new GameState($this->loop);
     }
@@ -80,17 +80,42 @@ class Game implements utils\EventAwareInterface
             }
         }
 
-        /* @var $object Objects\Base */
-
-        // TODO: Game / player event bindings.
         foreach ($this->players as $object) {
+            /* @var $object Objects\Player */
             $this->addObject($object);
-            $this->on('new-input', [$object, 'handleInput']);
+            $this->on('new-input', [$object, 'move']);
 
             // Maintain field correctness.
             $object->on('after-move', function(Player $player, $oldCoords) {
                 $this->addObject($player);
                 $this->clearPoint($oldCoords);
+                $this->state->incrementMoves();
+            });
+        }
+
+        // Attach walls.
+        foreach ($this->walls as $object) {
+            /* @var $object Objects\Wall */
+            $this->addObject($object);
+        }
+
+        // Attachc boxes.
+        foreach ($this->boxes as $object) {
+            /* @var $object Objects\Box */
+            $this->addObject($object);
+
+            foreach ($this->players as $player) {
+                /* @var $player Objects\Player */
+                $player->on('push', function(Player $p, $direction) use ($object) {
+                    $object->move($this, $direction);
+                });
+            }
+
+            // Maintain field correctness.
+            $object->on('after-move', function(Box $box, $oldCoords) {
+                $this->addObject($box);
+                $this->clearPoint($oldCoords);
+                $this->state->incrementPushes();
             });
         }
 
@@ -118,8 +143,14 @@ class Game implements utils\EventAwareInterface
 
         // Start the game loop.
         $this->loop->addPeriodicTimer(0.05, function() {
-            $this->update();
-            $this->render();
+            // handle game state mutations.
+            $direction = $this->inputProvider->getLastDirection();
+            if ($direction !== ProviderInterface::DIRECTION_NONE) {
+                $this->trigger('new-input', [$this, $direction]);
+            }
+
+            // Render the UI.
+            $this->graphics->render($this->state, $this->field);
         });
 
         $this->loop->run();
@@ -130,36 +161,20 @@ class Game implements utils\EventAwareInterface
         $this->players[$player->getId()] = $player;
     }
 
-    protected function update()
-    {
-        $direction = $this->inputProvider->getLastDirection();
-        if ($direction === ProviderInterface::DIRECTION_NONE) {
-            // Nothing to update.
-            return false;
-        }
-        $this->trigger('new-input', [$this, $direction]);
-
-        return true;
+    public function addWall(Wall $wall) {
+        $this->walls[] = $wall;
     }
 
-    protected function render()
+    public function addBox(Box $box)
     {
-        $this->graphics->render($this->field);
+        $this->boxes[] = $box;
     }
-
-//    private function handlePlayerMove(Player $player, $direction)
-//    {
-//
-//    }
 
     public function isFree($point)
     {
         list ($row, $col) = $point;
-        return $this->field[$row][$col] instanceof NullObject;
-    }
-
-    public function moveTo($object, $row, $col)
-    {
-
+        return $row >= 0
+            && $col < $this->height
+            && $this->field[$row][$col] instanceof NullObject;
     }
 }

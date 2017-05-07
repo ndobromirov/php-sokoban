@@ -19,6 +19,7 @@ class GameState
     private $loop;
 
     private $moves = null;
+    private $pushes = null;
     private $playTime = null;
 
     public function __construct($loop)
@@ -30,6 +31,7 @@ class GameState
     {
         if ($this->moves === null) {
             $this->moves = 0;
+            $this->pushes = 0;
             $this->playTime = 0;
 
             $this->loop->addPeriodicTimer(1, function() {
@@ -42,6 +44,11 @@ class GameState
     public function incrementMoves()
     {
         ++$this->moves;
+    }
+
+    public function incrementPushes()
+    {
+        ++$this->pushes;
     }
 
     public function getMoves()

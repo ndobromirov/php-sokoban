@@ -15,5 +15,8 @@ namespace Sokoban\Objects;
  */
 class Box extends Base
 {
-    //put your code here
+    public function isMovable()
+    {
+        return true;
+    }
 }

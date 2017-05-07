@@ -9,7 +9,7 @@
 namespace Sokoban\Graphics;
 
 use Sokoban\Objects\Base as GameObject;
-
+use Sokoban\GameState;
 /**
  * Description of Base
  *
@@ -23,7 +23,7 @@ abstract class Base implements GraphicsInterface
     {
     }
 
-    public function render($field)
+    public function render(GameState $state, $field)
     {
         $this->buffer = $this->initBuffer(count($field), count($field[0]));
 
@@ -33,10 +33,12 @@ abstract class Base implements GraphicsInterface
             }
         }
 
+        $this->renderState($state);
+
         $this->displayBuffer();
     }
 
-
+    abstract protected function renderState(GameState $state);
     abstract protected function initBuffer($rows, $cols);
     abstract protected function renderGameObject(GameObject $object, $row, $col);
     abstract protected function displayBuffer();
