@@ -248,4 +248,26 @@ class Game implements utils\EventAwareInterface
         // Handle game completition.
         $this->completed = $total === count($this->targets);
     }
+
+    public function loadLevel($path)
+    {
+        $map = [
+            '#' => ['addWall', Wall::class],
+            '@' => ['addPlayer', Player::class],
+            'O' => ['addBox', Box::class],
+            'X' => ['addTarget', Target::class],
+        ];
+
+        $levelDefinition = file_get_contents($path);
+        foreach (explode(PHP_EOL, $levelDefinition) as $row => $cols) {
+            foreach (str_split($cols) as $col => $code) {
+                if (isset($map[$code])) {
+                    list ($method, $class) = $map[$code];
+                    call_user_func([$this, $method], new $class($row, $col));
+                }
+            }
+        }
+
+        return $this;
+    }
 }

@@ -49,6 +49,7 @@ abstract class BaseProvider implements ProviderInterface
 
     public function __destruct()
     {
+        $this->loop->removeReadStream($this->stream);
         fclose($this->stream);
     }
 

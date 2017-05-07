@@ -20,7 +20,7 @@ class Player extends Base
     public $id;
     public $name;
 
-    public function __construct($row, $col, $id, $name)
+    public function __construct($row, $col, $id = 1, $name = "name")
     {
         $this->id = $id;
         $this->name = $name;

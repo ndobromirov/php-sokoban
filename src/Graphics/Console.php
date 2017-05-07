@@ -10,6 +10,11 @@ namespace Sokoban\Graphics;
 
 use Sokoban\Objects\Base as GameObject;
 use Sokoban\GameState;
+use Sokoban\Objects\Wall;
+use Sokoban\Objects\Target;
+use Sokoban\Objects\NullObject;
+use Sokoban\Objects\Player;
+use Sokoban\Objects\Box;
 
 /**
  * Description of Renderer
@@ -26,11 +31,11 @@ class Console extends Base
     public function __construct()
     {
         $this->mapping = [
-            \Sokoban\Objects\Wall::class => ['#'],
-            \Sokoban\Objects\Target::class => ['X'],
-            \Sokoban\Objects\NullObject::class => [' '],
-            \Sokoban\Objects\Box::class => ['O', '0'],
-            \Sokoban\Objects\Player::class => ['@'],
+            Wall::class => ['#'],
+            Target::class => ['X'],
+            NullObject::class => [' '],
+            Box::class => ['O', '0'],
+            Player::class => ['@'],
         ];
     }
 
