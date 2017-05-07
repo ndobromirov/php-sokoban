@@ -8,30 +8,52 @@
 
 namespace Sokoban\Objects;
 
+use Sokoban\utils\EventsTrait;
+use Sokoban\utils\EventAwareInterface;
+use Sokoban\InputProvider\ProviderInterface;
+
 /**
  * Description of Base
  *
  * @author ndobromirov
  */
-class Base
+class Base implements EventAwareInterface
 {
-    private $subscribers = [];
+    use EventsTrait;
 
-    public function on($eventName, $callback)
+    protected static $directions = [
+        ProviderInterface::DIRECTION_UP => [0, -1],
+        ProviderInterface::DIRECTION_DOWN => [0, 1],
+        ProviderInterface::DIRECTION_LEFT => [-1, 0],
+        ProviderInterface::DIRECTION_RIGHT => [1, 0],
+        ProviderInterface::DIRECTION_NONE => [0, 0],
+    ];
+
+    private $row;
+    private $col;
+
+    public function __construct($row, $col)
     {
-        if (!isset($this->subscribers[$eventName])) {
-            $this->subscribers[$eventName] = [];
-        }
-        $this->subscribers[$eventName][] = $callback;
+        $this->row = $row;
+        $this->col = $col;
     }
 
-    protected function trigger($eventName, array $arguments)
+    public function getLabel()
     {
-        if (!isset($this->subscribers[$eventName])) {
-            return;
-        }
-        foreach ($this->subscribers[$eventName] as $callback) {
-            call_user_func($callback, $arguments);
-        }
+        return implode('-', [
+            array_reverse(explode('\\', get_class($this)))[0],
+            $this->row,
+            $this->col,
+        ]);
+    }
+
+    public function getCoordinates()
+    {
+        return [$this->row, $this->col];
+    }
+
+    public function isMovable()
+    {
+        return false;
     }
 }

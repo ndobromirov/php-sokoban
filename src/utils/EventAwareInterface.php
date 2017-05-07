@@ -6,18 +6,15 @@
  * and open the template in the editor.
  */
 
-namespace Sokoban\Objects;
+namespace Sokoban\utils;
 
 /**
- * Description of NullObject
  *
  * @author ndobromirov
  */
-class NullObject extends Base
+interface EventAwareInterface
 {
-    public static function fromPoint($point)
-    {
-        list ($row, $col) = $point;
-        return new static($row, $col);
-    }
+    public function on($eventName, $callback);
+
+    public function trigger($eventName, array $arguments = []);
 }

@@ -10,15 +10,23 @@ namespace Sokoban;
 
 use React\EventLoop\LoopInterface;
 use Sokoban\InputProvider\ProviderInterface;
+use Sokoban\Graphics\Base as Renderer;
 use Sokoban\Objects\Player;
 use Sokoban\Objects\NullObject;
+use Sokoban\Objects\Box;
+use Sokoban\Objects\PlacedBox;
+use Sokoban\Objects\Target;
+use Sokoban\Objects\Wall;
+
 /**
  * Description of Game
  *
  * @author ndobromirov
  */
-class Game
+class Game implements utils\EventAwareInterface
 {
+    use utils\EventsTrait;
+
     /** @var LoopInterface */
     private $loop;
 
@@ -35,29 +43,78 @@ class Game
 
     private $field = [];
 
+    /** @var Renderer */
     private $graphics;
 
-    public function __construct(LoopInterface $loop, ProviderInterface $inputProvider)
+    /** @var GameState */
+    private $state;
+
+    public function __construct(LoopInterface $loop, ProviderInterface $inputProvider, Renderer $renderer)
     {
         $this->loop = $loop;
         $this->inputProvider = $inputProvider;
+        $this->graphics = $renderer;
 
+        $this->field = [];
         $this->width  = (int) exec('tput cols');
         $this->height = (int) exec('tput lines') - 1;
 
-        $this->field = [];
+        $this->state = new GameState($this->loop);
+    }
+
+    private function addObject(Objects\Base $object)
+    {
+        list ($row, $col) = $object->getCoordinates();
+        $this->field[$row][$col] = $object;
+    }
+
+    protected function init()
+    {
+        $this->graphics->init();
+
+        // Initialize empty field.
         for ($row = 0; $row < $this->height; ++$row) {
             $this->field[$row] = [];
             for ($col = 0; $col < $this->width; ++$col) {
-                $this->field[$row][$col] = new NullObject();
+                $this->addObject(new NullObject($row, $col));
             }
         }
+
+        /* @var $object Objects\Base */
+
+        // TODO: Game / player event bindings.
+        foreach ($this->players as $object) {
+            $this->addObject($object);
+            $this->on('new-input', [$object, 'handleInput']);
+
+            // Maintain field correctness.
+            $object->on('after-move', function(Player $player, $oldCoords) {
+                $this->addObject($player);
+                $this->clearPoint($oldCoords);
+            });
+        }
+
+        $this->state->init();
+    }
+
+    public function clearPoint($point)
+    {
+        $this->addObject(NullObject::fromPoint($point));
+    }
+
+    /**
+     *
+     * @param array $point Ordered pair [row, col]
+     * @return Objects\Base
+     */
+    private function getObject($point)
+    {
+        return $this->field[$point[0]][$point[1]];
     }
 
     public function run()
     {
-        // Stop printing of controll characters in UNIX console.
-        system('stty -icanon -echo');
+        $this->init();
 
         // Start the game loop.
         $this->loop->addPeriodicTimer(0.05, function() {
@@ -68,26 +125,40 @@ class Game
         $this->loop->run();
     }
 
-
-    public function addObject(Objects\Base $gameObject, $row, $col)
-    {
-        if ($gameObject instanceof Player) {
-            $gameObject->on('move', function($player, $direction) {
-                $this->handlePlayerMove($player, $direction);
-            });
-            $this->players[] = $gameObject;
-        }
-
-        $this->field[$row][$col] = $gameObject;
-    }
-
     public function addPlayer(Player $player)
     {
-
-        $this->players[$player->getId] = $player;
+        $this->players[$player->getId()] = $player;
     }
 
-    private function handlePlayerMove(Player $player, $direction)
+    protected function update()
+    {
+        $direction = $this->inputProvider->getLastDirection();
+        if ($direction === ProviderInterface::DIRECTION_NONE) {
+            // Nothing to update.
+            return false;
+        }
+        $this->trigger('new-input', [$this, $direction]);
+
+        return true;
+    }
+
+    protected function render()
+    {
+        $this->graphics->render($this->field);
+    }
+
+//    private function handlePlayerMove(Player $player, $direction)
+//    {
+//
+//    }
+
+    public function isFree($point)
+    {
+        list ($row, $col) = $point;
+        return $this->field[$row][$col] instanceof NullObject;
+    }
+
+    public function moveTo($object, $row, $col)
     {
 
     }

@@ -19,20 +19,23 @@ abstract class Base implements GraphicsInterface
 {
     protected $buffer;
 
+    public function init()
+    {
+    }
+
     public function render($field)
     {
-        $rows = count($field);
-        $cols = count($field[0]);
-        $this->buffer = $this->initBuffer($rows, $cols);
+        $this->buffer = $this->initBuffer(count($field), count($field[0]));
 
         foreach ($field as $row => $rowData) {
             foreach ($rowData as $col => $gameObject) {
-                $this->renderGameObject($this->buffer, $gameObject, $row, $col);
+                $this->renderGameObject($gameObject, $row, $col);
             }
         }
 
         $this->displayBuffer();
     }
+
 
     abstract protected function initBuffer($rows, $cols);
     abstract protected function renderGameObject(GameObject $object, $row, $col);

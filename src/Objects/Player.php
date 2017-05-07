@@ -8,7 +8,7 @@
 
 namespace Sokoban\Objects;
 
-use Sokoban\InputProvider\ProviderInterface;
+use Sokoban\Game;
 
 /**
  * Description of Player
@@ -17,16 +17,25 @@ use Sokoban\InputProvider\ProviderInterface;
  */
 class Player extends Base
 {
-    private static $directions = [
-        ProviderInterface::DIRECTION_UP => [0, -1],
-        ProviderInterface::DIRECTION_DOWN => [0, 1],
-        ProviderInterface::DIRECTION_LEFT => [-1, 0],
-        ProviderInterface::DIRECTION_RIGHT => [1, 0],
-        ProviderInterface::DIRECTION_NONE => [0, 0],
-    ];
+    public $id;
+    public $name;
 
-    public function __construct()
+    public function __construct($row, $col, $id, $name)
     {
+        $this->id = $id;
+        $this->name = $name;
+
+        parent::__construct($row, $col);
+    }
+
+    public function getLabel()
+    {
+        return $this->name;
+    }
+
+    public function getId()
+    {
+        return $this->id;
     }
 
     public function move($direction)
@@ -37,6 +46,22 @@ class Player extends Base
 
             $this->x += $newX;
             $this->y += $newY;
+        }
+    }
+
+    public function handleInput(Game $game, $direction)
+    {
+        $oldCoordinates = $this->getCoordinates();
+        list($rowDelta, $colDelta) = self::$directions[$direction];
+        $destination = [$this->row + $rowDelta, $this->col + $colDelta];
+
+        // Make everything move away for us.
+        $this->trigger('push', [$this, $direction]);
+
+        if ($game->isFree($destination)) {
+            $this->trigger('before-move', [$this, $destination]);
+            list ($this->row, $this->col) = $destination;
+            $this->trigger('after-move', [$this, $oldCoordinates]);
         }
     }
 }

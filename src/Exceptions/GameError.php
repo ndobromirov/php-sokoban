@@ -6,18 +6,13 @@
  * and open the template in the editor.
  */
 
-namespace Sokoban\Objects;
+namespace Sokoban\Exceptions;
 
 /**
- * Description of NullObject
+ * Description of GameError
  *
  * @author ndobromirov
  */
-class NullObject extends Base
+class GameError extends \Exception
 {
-    public static function fromPoint($point)
-    {
-        list ($row, $col) = $point;
-        return new static($row, $col);
-    }
 }

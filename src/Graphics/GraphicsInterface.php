@@ -6,6 +6,8 @@
  * and open the template in the editor.
  */
 
+namespace Sokoban\Graphics;
+
 /**
  *
  * @author ndobromirov
