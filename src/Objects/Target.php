@@ -15,5 +15,8 @@ namespace Sokoban\Objects;
  */
 class Target extends Base
 {
-    //put your code here
+    public function isSteppable()
+    {
+        return true;
+    }
 }

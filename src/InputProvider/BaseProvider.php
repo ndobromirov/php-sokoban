@@ -47,6 +47,11 @@ abstract class BaseProvider implements ProviderInterface
         });
     }
 
+    public function __destruct()
+    {
+        fclose($this->stream);
+    }
+
     public function getLastDirection()
     {
         $result = $this->lastInput;

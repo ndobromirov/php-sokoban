@@ -20,15 +20,17 @@ class Console extends Base
 {
     private $mapping;
 
+    private $screenWidth;
+    private $screenHeight;
+
     public function __construct()
     {
         $this->mapping = [
-            \Sokoban\Objects\Wall::class => '#',
-            \Sokoban\Objects\Target::class => 'X',
-            \Sokoban\Objects\NullObject::class => ' ',
-            \Sokoban\Objects\Box::class => 'O',
-            \Sokoban\Objects\Player::class => '@',
-            \Sokoban\Objects\PlacedBox::class => '0',
+            \Sokoban\Objects\Wall::class => ['#'],
+            \Sokoban\Objects\Target::class => ['X'],
+            \Sokoban\Objects\NullObject::class => [' '],
+            \Sokoban\Objects\Box::class => ['O', '0'],
+            \Sokoban\Objects\Player::class => ['@'],
         ];
     }
 
@@ -42,8 +44,12 @@ class Console extends Base
 
     protected function initBuffer($rows, $cols)
     {
-        $empty = $this->mapping[\Sokoban\Objects\NullObject::class];
+        $empty = $this->mapping[\Sokoban\Objects\NullObject::class][0];
         $this->buffer = array_pad([], $rows, str_pad('', $cols, $empty));
+
+        // TODO mae it dynamically scalable.
+//        $this->screenWidth = (int) exec('tput cols');
+//        $this->screenHeight = (int) exec('tput lines');
     }
 
     protected function displayBuffer()
@@ -59,17 +65,19 @@ class Console extends Base
 
     protected function renderGameObject(GameObject $object, $row, $col)
     {
-        $this->buffer[$row + 1][$col] = $this->mapping[get_class($object)];
+        $ui = $this->mapping[get_class($object)];
+        $this->buffer[$row + 1][$col] = $ui[$object->getStateIndex()];
     }
 
     protected function renderState(GameState $state)
     {
         $lineLength = count($this->buffer[1]);
-        $empty = $this->mapping[\Sokoban\Objects\NullObject::class];
+        $empty = $this->mapping[\Sokoban\Objects\NullObject::class][0];
         $message = implode(', ', [
             "Moves: {$state->getMoves()}",
             "Pushes: {$state->getPushes()}",
             "Play time: {$state->getPlayTime()}",
+            "Placed: {$state->getPlacedBoxes()}",
         ]);
 
         array_unshift($this->buffer, str_split(str_pad($message, $lineLength, $empty)));

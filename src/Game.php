@@ -27,6 +27,9 @@ class Game implements utils\EventAwareInterface
 {
     use utils\EventsTrait;
 
+    const MAX_WIDTH = 40;
+    const MAX_HEIGHT = 18;
+
     /** @var LoopInterface */
     private $loop;
 
@@ -49,6 +52,8 @@ class Game implements utils\EventAwareInterface
     /** @var GameState */
     private $state;
 
+    private $completed;
+
     public function __construct(LoopInterface $loop, ProviderInterface $inputProvider, Renderer $renderer)
     {
         $this->loop = $loop;
@@ -57,7 +62,9 @@ class Game implements utils\EventAwareInterface
 
         $this->field = [];
         $this->width  = (int) exec('tput cols');
-        $this->height = (int) exec('tput lines') - 2;
+        $this->height = (int) exec('tput lines') - 1;
+
+//        die("$this->width $this->height");
 
         $this->state = new GameState($this->loop);
     }
@@ -119,6 +126,18 @@ class Game implements utils\EventAwareInterface
                 $this->clearPoint($oldCoords);
                 $this->state->incrementPushes();
             });
+
+            $object->on('placed', function(Box $box) {
+                $this->state->incrementPlacedBoxes();
+            });
+
+            $object->on('displaced', function(Box $box) {
+                $this->state->decrementPlacedBoxes();
+            });
+        }
+
+        foreach ($this->targets as $target) {
+            $this->addObject($target);
         }
 
         $this->state->init();
@@ -145,14 +164,17 @@ class Game implements utils\EventAwareInterface
 
         // Start the game loop.
         $this->loop->addPeriodicTimer(0.05, function() {
-            // handle game state mutations.
-            $direction = $this->inputProvider->getLastDirection();
-            if ($direction !== ProviderInterface::DIRECTION_NONE) {
-                $this->trigger('new-input', [$this, $direction]);
-            }
+            $this->readInput();
+
+            $this->update();
 
             // Render the UI.
             $this->graphics->render($this->state, $this->field);
+
+            if ($this->completed) {
+                $this->trigger('level-completed', [$this->state]);
+                $this->loop->stop();
+            }
         });
 
         $this->loop->run();
@@ -169,7 +191,22 @@ class Game implements utils\EventAwareInterface
 
     public function addBox(Box $box)
     {
-        $this->boxes[] = $box;
+        $this->boxes[$box->getId()] = $box;
+    }
+
+    public function addTarget(Target $target)
+    {
+        $this->targets[$target->getId()] = $target;
+    }
+
+    public function getBox($id)
+    {
+        return isset($this->boxes[$id]) ? $this->boxes[$id] : null;
+    }
+
+    public function getTarget($id)
+    {
+        return isset($this->targets[$id]) ? $this->targets[$id] : null;
     }
 
     public function isFree($point)
@@ -177,6 +214,38 @@ class Game implements utils\EventAwareInterface
         list ($row, $col) = $point;
         return 0 <= $row && $row < $this->height
             && 0 <= $col && $col < $this->width
-            && $this->field[$row][$col] instanceof NullObject;
+            && $this->field[$row][$col]->isSteppable();
+    }
+
+    private function readInput()
+    {
+        // handle game state mutations.
+        $direction = $this->inputProvider->getLastDirection();
+        if ($direction !== ProviderInterface::DIRECTION_NONE) {
+            $this->trigger('new-input', [$this, $direction]);
+        }
+    }
+
+    private function update()
+    {
+        // Hndle targets existence.
+        foreach ($this->targets as $target) {
+            /* @var $target Objects\Base */
+            $fieldInstance = $this->getObject($target->getCoordinates());
+            if ($fieldInstance instanceof NullObject) {
+                $this->addObject($target);
+            }
+        }
+
+        // Manage boxes state.
+        $total = 0;
+        foreach ($this->boxes as $box) {
+            /* @var $box Box */
+            $box->update($this);
+            $total += (int) $box->isPlaced();
+        }
+
+        // Handle game completition.
+        $this->completed = $total === count($this->targets);
     }
 }

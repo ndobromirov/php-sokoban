@@ -58,6 +58,11 @@ class Base implements EventAwareInterface
         return false;
     }
 
+    public function isSteppable()
+    {
+        return false;
+    }
+
     protected function getDestination($direction, $point = null)
     {
         list($rowDelta, $colDelta) = self::$directions[$direction];
@@ -78,5 +83,19 @@ class Base implements EventAwareInterface
             list ($this->row, $this->col) = $destination;
             $this->trigger('after-move', [$this, $oldCoordinates]);
         }
+    }
+
+    public function getId()
+    {
+        return "$this->row-$this->col";
+    }
+
+    public function update(Game $game)
+    {
+    }
+
+    public function getStateIndex()
+    {
+        return 0;
     }
 }

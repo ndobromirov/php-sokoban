@@ -21,6 +21,7 @@ class GameState
     private $moves = null;
     private $pushes = null;
     private $playTime = null;
+    private $placedBoxes = null;
 
     public function __construct($loop)
     {
@@ -33,6 +34,7 @@ class GameState
             $this->moves = 0;
             $this->pushes = 0;
             $this->playTime = 0;
+            $this->placedBoxes = 0;
 
             $this->loop->addPeriodicTimer(1, function() {
                 // Track the time passed in gameplay.
@@ -41,9 +43,19 @@ class GameState
         }
     }
 
-    public function incrementMoves()
+    public function incrementPlacedBoxes()
     {
-        ++$this->moves;
+        ++$this->placedBoxes;
+    }
+
+    public function decrementPlacedBoxes()
+    {
+        --$this->placedBoxes;
+    }
+
+    public function getPlacedBoxes()
+    {
+        return $this->placedBoxes;
     }
 
     public function incrementPushes()
@@ -56,6 +68,11 @@ class GameState
         return $this->pushes;
     }
 
+    public function incrementMoves()
+    {
+        ++$this->moves;
+    }
+
     public function getMoves()
     {
         return $this->moves;
@@ -65,5 +82,4 @@ class GameState
     {
         return $this->playTime;
     }
-
 }

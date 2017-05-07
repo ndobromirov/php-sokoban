@@ -13,6 +13,9 @@ $game = new \Sokoban\Game($loop, $inputProvider, $renderer);
 // Add player.
 $game->addPlayer(new Sokoban\Objects\Player(11, 11, 1, 'Player 1'));
 
+$game->addTarget(new Sokoban\Objects\Target(10, 10));
+
+// Add boxes.
 $game->addBox(new Sokoban\Objects\Box(11, 12));
 $game->addBox(new Sokoban\Objects\Box(12, 11));
 

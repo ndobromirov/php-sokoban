@@ -20,4 +20,9 @@ class NullObject extends Base
         list ($row, $col) = $point;
         return new static($row, $col);
     }
+
+    public function isSteppable()
+    {
+        return true;
+    }
 }
