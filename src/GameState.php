@@ -51,6 +51,11 @@ class GameState
         ++$this->pushes;
     }
 
+    public function getPushes()
+    {
+        return $this->pushes;
+    }
+
     public function getMoves()
     {
         return $this->moves;

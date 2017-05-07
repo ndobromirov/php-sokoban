@@ -99,15 +99,17 @@ class Game implements utils\EventAwareInterface
             $this->addObject($object);
         }
 
-        // Attachc boxes.
+        // Attach boxes.
         foreach ($this->boxes as $object) {
             /* @var $object Objects\Box */
             $this->addObject($object);
 
             foreach ($this->players as $player) {
                 /* @var $player Objects\Player */
-                $player->on('push', function(Player $p, $direction) use ($object) {
-                    $object->move($this, $direction);
+                $player->on('push', function(Player $p, $direction, $point) use ($object) {
+                    if ($object->getCoordinates() === $point) {
+                        $object->move($this, $direction);
+                    }
                 });
             }
 
@@ -173,8 +175,8 @@ class Game implements utils\EventAwareInterface
     public function isFree($point)
     {
         list ($row, $col) = $point;
-        return $row >= 0
-            && $col < $this->height
+        return 0 <= $row && $row < $this->height
+            && 0 <= $col && $col < $this->width
             && $this->field[$row][$col] instanceof NullObject;
     }
 }

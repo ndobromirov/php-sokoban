@@ -46,7 +46,11 @@ class Player extends Base
     public function move(Game $game, $direction)
     {
         // Make everything move away for us.
-        $this->trigger('push', [$this, $direction]);
+        $this->trigger('push', [
+            $this,
+            $direction,
+            $this->getDestination($direction),
+        ]);
 
         // Then move when it's free (if possible).
         parent::move($game, $direction);

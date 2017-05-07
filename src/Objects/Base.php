@@ -11,6 +11,7 @@ namespace Sokoban\Objects;
 use Sokoban\utils\EventsTrait;
 use Sokoban\utils\EventAwareInterface;
 use Sokoban\InputProvider\ProviderInterface;
+use Sokoban\Game;
 
 /**
  * Description of Base
@@ -66,8 +67,11 @@ class Base implements EventAwareInterface
 
     public function move(Game $game, $direction)
     {
+        if (!$this->isMovable()) {
+            return;
+        }
         $destination = $this->getDestination($direction);
-        if ($this->isMovable() && $game->isFree($destination)) {
+        if ($game->isFree($destination)) {
             $oldCoordinates = $this->getCoordinates();
 
             $this->trigger('before-move', [$this, $destination]);
