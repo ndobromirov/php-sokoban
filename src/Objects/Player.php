@@ -20,11 +20,14 @@ class Player extends Base
     public $id;
     public $name;
 
+    private $state;
+
     public function __construct($row, $col, $id = 1, $name = "name")
     {
         $this->id = $id;
         $this->name = $name;
 
+        $this->state = rand(0, 3);
         parent::__construct($row, $col);
     }
 
@@ -45,6 +48,10 @@ class Player extends Base
 
     public function move(Game $game, $direction)
     {
+        if ($direction) {
+            $this->state = $direction - 1;
+        }
+
         // Make everything move away for us.
         $this->trigger('push', [
             $this,
@@ -70,5 +77,10 @@ class Player extends Base
         });
 
         parent::init($game);
+    }
+
+    public function getStateIndex()
+    {
+        return $this->state;
     }
 }

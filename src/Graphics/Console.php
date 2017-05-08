@@ -35,7 +35,7 @@ class Console extends Base
             Target::class => ['X'],
             NullObject::class => [' '],
             Box::class => ['O', '0'],
-            Player::class => ['@'],
+            Player::class => ['^', 'V', '<', '>'],
         ];
     }
 
