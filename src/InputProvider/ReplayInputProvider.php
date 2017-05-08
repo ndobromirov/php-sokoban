@@ -28,13 +28,17 @@ class ReplayInputProvider implements ProviderInterface
 
     public function init(Game $game)
     {
-        $rawReplayData = file_get_contents($this->replay);
-        $this->moves = array_map('intval', explode(',', $rawReplayData));
         $this->moveIndex = 0;
+        $this->moves = strtr(strtolower(file_get_contents($this->replay)), [
+            'u' => self::DIRECTION_UP,
+            'd' => self::DIRECTION_DOWN,
+            'l' => self::DIRECTION_LEFT,
+            'r' => self::DIRECTION_RIGHT,
+        ]);
     }
 
     public function getLastDirection()
     {
-        return $this->moves[$this->moveIndex++];
+        return (int) $this->moves[$this->moveIndex++];
     }
 }

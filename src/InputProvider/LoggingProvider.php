@@ -23,24 +23,32 @@ class LoggingProvider implements ProviderInterface
     private $dir;
 
     private $moves;
+    private $map;
 
     public function __construct(ProviderInterface $provider, $level, $replaysDir)
     {
         $this->provider = $provider;
         $this->level = $level;
-        $this->moves = [];
         $this->dir = $replaysDir;
     }
 
     public function init(Game $game)
     {
+        $this->moves = [];
+        $this->map = [
+            self::DIRECTION_DOWN => 'd',
+            self::DIRECTION_UP => 'u',
+            self::DIRECTION_LEFT => 'l',
+            self::DIRECTION_RIGHT => 'r',
+        ];
+
         // Proxy the call to the original.
         $this->provider->init($game);
 
         // Handle game success by storing the moves to a file.
         $game->on('level-completed', function(GameState $state) {
-            $name = "level-{$this->level}-" . date("Ymd-his") . ".rep";
-            file_put_contents("{$this->dir}/$name", implode(',', $this->moves));
+            $name = "level-{$this->level}-" . date("Ymd-his") . ".txt";
+            file_put_contents("{$this->dir}/$name", implode('', $this->moves));
         });
     }
 
@@ -48,7 +56,7 @@ class LoggingProvider implements ProviderInterface
     {
         $result = $this->provider->getLastDirection();
         if ($result !== self::DIRECTION_NONE) {
-            $this->moves[] = $result;
+            $this->moves[] = $this->map[$result];
         }
         return $result;
     }

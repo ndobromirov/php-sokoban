@@ -14,9 +14,9 @@ use Sokoban\Graphics\Base as Renderer;
 use Sokoban\Objects\Player;
 use Sokoban\Objects\NullObject;
 use Sokoban\Objects\Box;
-use Sokoban\Objects\PlacedBox;
 use Sokoban\Objects\Target;
 use Sokoban\Objects\Wall;
+use Sokoban\Loader\LevelLoaderInterface;
 
 /**
  * Description of Game
@@ -36,6 +36,9 @@ class Game implements utils\EventAwareInterface
     /** @var ProviderInterface */
     private $inputProvider;
 
+    /** @var Loader\LevelLoaderInterface */
+    private $levelLoader;
+
     private $width;
     private $height;
 
@@ -54,17 +57,16 @@ class Game implements utils\EventAwareInterface
 
     private $completed;
 
-    public function __construct(LoopInterface $loop, ProviderInterface $inputProvider, Renderer $renderer)
+    public function __construct(LoopInterface $loop, ProviderInterface $inputProvider, Renderer $renderer, LevelLoaderInterface $loader)
     {
         $this->loop = $loop;
         $this->inputProvider = $inputProvider;
         $this->graphics = $renderer;
+        $this->levelLoader = $loader;
 
         $this->field = [];
         $this->width  = (int) exec('tput cols');
         $this->height = (int) exec('tput lines') - 1;
-
-//        die("$this->width $this->height");
 
         $this->state = new GameState($this->loop);
     }
@@ -227,23 +229,7 @@ class Game implements utils\EventAwareInterface
 
     public function loadLevel($path)
     {
-        $map = [
-            '#' => ['addWall', Wall::class],
-            '@' => ['addPlayer', Player::class],
-            'O' => ['addBox', Box::class],
-            'X' => ['addTarget', Target::class],
-        ];
-
-        $levelDefinition = file_get_contents($path);
-        foreach (explode(PHP_EOL, $levelDefinition) as $row => $cols) {
-            foreach (str_split($cols) as $col => $code) {
-                if (isset($map[$code])) {
-                    list ($method, $class) = $map[$code];
-                    call_user_func([$this, $method], new $class($row, $col));
-                }
-            }
-        }
-
+        $this->levelLoader->load($this, $path);
         return $this;
     }
 }

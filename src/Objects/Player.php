@@ -49,15 +49,15 @@ class Player extends Base
     public function move(Game $game, $direction)
     {
         if ($direction) {
-            $this->state = $direction - 1;
-        }
+            $this->state = $direction;
 
-        // Make everything move away for us.
-        $this->trigger('push', [
-            $this,
-            $direction,
-            $this->getDestination($direction),
-        ]);
+            // Make everything move away for us.
+            $this->trigger('push', [
+                $this,
+                $direction,
+                $this->getDestination($direction),
+            ]);
+        }
 
         // Then move when it's free (if possible).
         parent::move($game, $direction);
@@ -77,6 +77,13 @@ class Player extends Base
         });
 
         parent::init($game);
+    }
+
+    public function update(Game $game)
+    {
+        $this->state = $game->getTarget(parent::getId()) !== null ? 0 : $this->state;
+
+        parent::update($game);
     }
 
     public function getStateIndex()

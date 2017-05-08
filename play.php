@@ -8,10 +8,14 @@ $replaysDirectoryPath = __DIR__ . '/replays';
 
 // Init dependencies.
 $loop = React\EventLoop\Factory::create();
-$inputProvider = new \Sokoban\InputProvider\UserArrows($loop);
-$loggingProvider = new Sokoban\InputProvider\LoggingProvider($inputProvider, $level, $replaysDirectoryPath);
 $renderer = new Sokoban\Graphics\Console();
 
-$game = new \Sokoban\Game($loop, $loggingProvider, $renderer);
+$inputProvider = new \Sokoban\InputProvider\UserArrows($loop);
+$loggingProvider = new \Sokoban\InputProvider\LoggingProvider($inputProvider, $level, $replaysDirectoryPath);
+
+$levelDecoder = new \Sokoban\Loader\PlainDecoder();
+$levelLoader = new \Sokoban\Loader\StandardFormatLoader($levelDecoder);
+
+$game = new \Sokoban\Game($loop, $loggingProvider, $renderer, $levelLoader);
 $game->loadLevel($levelPath);
 $game->run();
