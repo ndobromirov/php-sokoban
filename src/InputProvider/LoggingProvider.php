@@ -24,6 +24,7 @@ class LoggingProvider implements ProviderInterface
 
     private $moves;
     private $map;
+    private $moveCode = null;
 
     public function __construct(ProviderInterface $provider, $level, $replaysDir)
     {
@@ -45,6 +46,20 @@ class LoggingProvider implements ProviderInterface
         // Proxy the call to the original.
         $this->provider->init($game);
 
+        // Set case to upper, for when the action was moving a box.
+        foreach ($game->getBoxes() as $box) {
+            $box->on('after-move', function() {
+                $this->moveCode = strtoupper($this->moveCode);
+            });
+        }
+
+        // Add the code to the log, when player moves.
+        foreach ($game->getPlayers() as $player) {
+            $player->on('after-move', function() {
+                $this->moves[] = $this->moveCode;
+            });
+        }
+
         // Handle game success by storing the moves to a file.
         $game->on('level-completed', function(GameState $state) {
             $name = "level-{$this->level}-" . date("Ymd-his") . ".txt";
@@ -56,7 +71,8 @@ class LoggingProvider implements ProviderInterface
     {
         $result = $this->provider->getLastDirection();
         if ($result !== self::DIRECTION_NONE) {
-            $this->moves[] = $this->map[$result];
+            // Hijack the input value.
+            $this->moveCode = $this->map[$result];
         }
         return $result;
     }
