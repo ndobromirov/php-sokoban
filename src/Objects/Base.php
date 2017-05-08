@@ -90,6 +90,11 @@ class Base implements EventAwareInterface
         return "$this->row-$this->col";
     }
 
+    public function init(Game $game)
+    {
+        $game->addObject($this);
+    }
+
     public function update(Game $game)
     {
     }

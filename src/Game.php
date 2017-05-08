@@ -69,10 +69,34 @@ class Game implements utils\EventAwareInterface
         $this->state = new GameState($this->loop);
     }
 
-    private function addObject(Objects\Base $object)
+    public function addObject(Objects\Base $object)
     {
         list ($row, $col) = $object->getCoordinates();
         $this->field[$row][$col] = $object;
+    }
+
+    private function objectsGenerator()
+    {
+        foreach ($this->players as $object) {
+            yield $object;
+        }
+
+        foreach ($this->targets as $object) {
+            yield $object;
+        }
+
+        foreach ($this->boxes as $object) {
+            yield $object;
+        }
+
+        foreach ($this->walls as $object) {
+            yield $object;
+        }
+    }
+
+    public function getState()
+    {
+        return $this->state;
     }
 
     protected function init()
@@ -87,57 +111,9 @@ class Game implements utils\EventAwareInterface
             }
         }
 
-        foreach ($this->players as $object) {
-            /* @var $object Objects\Player */
-            $this->addObject($object);
-            $this->on('new-input', [$object, 'move']);
-
-            // Maintain field correctness.
-            $object->on('after-move', function(Player $player, $oldCoords) {
-                $this->addObject($player);
-                $this->clearPoint($oldCoords);
-                $this->state->incrementMoves();
-            });
-        }
-
-        // Attach walls.
-        foreach ($this->walls as $object) {
-            /* @var $object Objects\Wall */
-            $this->addObject($object);
-        }
-
-        // Attach boxes.
-        foreach ($this->boxes as $object) {
-            /* @var $object Objects\Box */
-            $this->addObject($object);
-
-            foreach ($this->players as $player) {
-                /* @var $player Objects\Player */
-                $player->on('push', function(Player $p, $direction, $point) use ($object) {
-                    if ($object->getCoordinates() === $point) {
-                        $object->move($this, $direction);
-                    }
-                });
-            }
-
-            // Maintain field correctness.
-            $object->on('after-move', function(Box $box, $oldCoords) {
-                $this->addObject($box);
-                $this->clearPoint($oldCoords);
-                $this->state->incrementPushes();
-            });
-
-            $object->on('placed', function(Box $box) {
-                $this->state->incrementPlacedBoxes();
-            });
-
-            $object->on('displaced', function(Box $box) {
-                $this->state->decrementPlacedBoxes();
-            });
-        }
-
-        foreach ($this->targets as $target) {
-            $this->addObject($target);
+        // Init game objects.
+        foreach ($this->objectsGenerator() as $object) {
+            $object->init($this);
         }
 
         $this->state->init();
@@ -153,7 +129,7 @@ class Game implements utils\EventAwareInterface
      * @param array $point Ordered pair [row, col]
      * @return Objects\Base
      */
-    private function getObject($point)
+    public function getObject($point)
     {
         return $this->field[$point[0]][$point[1]];
     }
@@ -185,8 +161,18 @@ class Game implements utils\EventAwareInterface
         $this->players[$player->getId()] = $player;
     }
 
+    public function getPlayers()
+    {
+        return $this->players;
+    }
+
     public function addWall(Wall $wall) {
         $this->walls[] = $wall;
+    }
+
+    public function getWalls()
+    {
+        return $this->walls;
     }
 
     public function addBox(Box $box)
@@ -194,14 +180,14 @@ class Game implements utils\EventAwareInterface
         $this->boxes[$box->getId()] = $box;
     }
 
+    public function getBoxes()
+    {
+        return $this->boxes;
+    }
+
     public function addTarget(Target $target)
     {
         $this->targets[$target->getId()] = $target;
-    }
-
-    public function getBox($id)
-    {
-        return isset($this->boxes[$id]) ? $this->boxes[$id] : null;
     }
 
     public function getTarget($id)
@@ -212,14 +198,14 @@ class Game implements utils\EventAwareInterface
     public function isFree($point)
     {
         list ($row, $col) = $point;
-        return 0 <= $row && $row < $this->height
-            && 0 <= $col && $col < $this->width
+        return isset($this->field[$row])
+            && isset($this->field[$row][$col])
             && $this->field[$row][$col]->isSteppable();
     }
 
     private function readInput()
     {
-        // handle game state mutations.
+        // Handle game state mutations.
         $direction = $this->inputProvider->getLastDirection();
         if ($direction !== ProviderInterface::DIRECTION_NONE) {
             $this->trigger('new-input', [$this, $direction]);
@@ -228,25 +214,14 @@ class Game implements utils\EventAwareInterface
 
     private function update()
     {
-        // Hndle targets existence.
-        foreach ($this->targets as $target) {
-            /* @var $target Objects\Base */
-            $fieldInstance = $this->getObject($target->getCoordinates());
-            if ($fieldInstance instanceof NullObject) {
-                $this->addObject($target);
-            }
-        }
-
-        // Manage boxes state.
-        $total = 0;
-        foreach ($this->boxes as $box) {
-            /* @var $box Box */
-            $box->update($this);
-            $total += (int) $box->isPlaced();
+        /* @var $object Objects\Base */
+        foreach ($this->objectsGenerator() as $object) {
+            $object->update($this);
         }
 
         // Handle game completition.
-        $this->completed = $total === count($this->targets);
+        $placedBoxesCount = $this->state->getPlacedBoxes();
+        $this->completed = count($this->targets) === $placedBoxesCount;
     }
 
     public function loadLevel($path)

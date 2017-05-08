@@ -55,4 +55,20 @@ class Player extends Base
         // Then move when it's free (if possible).
         parent::move($game, $direction);
     }
+
+    public function init(Game $game)
+    {
+        // TODO: Move this to the update.
+        $game->on('new-input', [$this, 'move']);
+
+        // Maintain field correctness.
+        $this->on('after-move', function(Player $player, $oldCoords) use ($game) {
+            $game->addObject($player);
+            $game->clearPoint($oldCoords);
+
+            $game->getState()->incrementMoves();
+        });
+
+        parent::init($game);
+    }
 }

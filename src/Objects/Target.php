@@ -8,6 +8,8 @@
 
 namespace Sokoban\Objects;
 
+use Sokoban\Game;
+
 /**
  * Description of Target
  *
@@ -18,5 +20,13 @@ class Target extends Base
     public function isSteppable()
     {
         return true;
+    }
+
+    public function update(Game $game)
+    {
+        // Handle existence on field.
+        if ($game->getObject($this->getCoordinates()) instanceof NullObject) {
+            $game->addObject($this);
+        }
     }
 }

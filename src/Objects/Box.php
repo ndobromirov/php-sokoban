@@ -24,6 +24,17 @@ class Box extends Base
         return true;
     }
 
+
+    public function isPlaced()
+    {
+        return $this->placed;
+    }
+
+    public function getStateIndex()
+    {
+        return (int) (bool) $this->placed;
+    }
+
     public function update(Game $game)
     {
         $wasPlaced = $this->isPlaced();
@@ -38,14 +49,35 @@ class Box extends Base
         }
     }
 
-    public function isPlaced()
+    public function init(Game $game)
     {
-        return $this->placed;
-    }
+        // React to player pushing.
+        $playerPush = function(Player $p, $direction, $point) use ($game) {
+            if ($this->getCoordinates() === $point) {
+                $this->move($game, $direction);
+            }
+        };
+        foreach ($game->getPlayers() as $player) {
+            /* @var $player Objects\Player */
+            $player->on('push', $playerPush);
+        }
 
-    public function getStateIndex()
-    {
-        return (int) (bool) $this->placed;
-    }
+        // Maintain game state.
+        $this->on('placed', function(Box $box) use ($game) {
+            $game->getState()->incrementPlacedBoxes();
+        });
+        $this->on('displaced', function(Box $box) use ($game) {
+            $game->getState()->decrementPlacedBoxes();
+        });
 
+        // Maintain field correctness.
+        $this->on('after-move', function(Box $box, $oldCoords) use ($game) {
+            $game->addObject($box);
+            $game->clearPoint($oldCoords);
+
+            $game->getState()->incrementPushes();
+        });
+
+        parent::init($game);
+    }
 }
