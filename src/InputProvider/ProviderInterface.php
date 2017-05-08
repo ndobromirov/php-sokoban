@@ -8,6 +8,8 @@
 
 namespace Sokoban\InputProvider;
 
+use Sokoban\Game;
+
 /**
  *
  * @author ndobromirov
@@ -19,6 +21,8 @@ interface ProviderInterface
     const DIRECTION_DOWN = 2;
     const DIRECTION_LEFT = 3;
     const DIRECTION_RIGHT = 4;
+
+    public function init(Game $game);
 
     public function getLastDirection();
 }

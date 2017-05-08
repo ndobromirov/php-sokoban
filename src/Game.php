@@ -101,6 +101,7 @@ class Game implements utils\EventAwareInterface
 
     protected function init()
     {
+        $this->inputProvider->init($this);
         $this->graphics->init();
 
         // Initialize empty field.

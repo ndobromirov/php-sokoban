@@ -9,6 +9,7 @@
 namespace Sokoban\InputProvider;
 
 use React\EventLoop\LoopInterface;
+use Sokoban\Game;
 
 /**
  * Description of BaseProvider
@@ -19,6 +20,7 @@ abstract class BaseProvider implements ProviderInterface
 {
     private $lastInput;
 
+    /** @var LoopInterface */
     private $loop;
     private $stream;
 
@@ -26,9 +28,12 @@ abstract class BaseProvider implements ProviderInterface
     {
         $this->loop = $loop;
         $this->stream = $this->getInputStream();
+    }
 
+    public function init(Game $game)
+    {
         $mapping = $this->getKeysMapping();
-        $loop->addReadStream($this->stream, function ($stdin) use ($mapping) {
+        $this->loop->addReadStream($this->stream, function ($stdin) use ($mapping) {
             // Always default input to NONE.
             $this->lastInput = self::DIRECTION_NONE;
 
