@@ -9,7 +9,7 @@
 namespace Sokoban\Objects;
 
 use Sokoban\Game;
-
+use Sokoban\InputProvider\UserInput;
 /**
  * Description of Box
  *
@@ -51,15 +51,21 @@ class Box extends Base
 
     public function init(Game $game)
     {
-        // React to player pushing.
-        $playerPush = function(Player $p, $direction, $point) use ($game) {
+        // React to player pushing & pulling.
+        $playerPush = function(Player $p, UserInput $input, $point) use ($game) {
             if ($this->getCoordinates() === $point) {
-                $this->move($game, $direction);
+                $this->move($game, $input);
+            }
+        };
+        $playerPull = function(Player $p, UserInput $input, $point) use ($game) {
+            if ($this->getDestination($input->direction) === $point) {
+                $this->move($game, $input);
             }
         };
         foreach ($game->getPlayers() as $player) {
             /* @var $player Objects\Player */
             $player->on('push', $playerPush);
+            $player->on('pull', $playerPull);
         }
 
         // Maintain game state.
@@ -71,11 +77,16 @@ class Box extends Base
         });
 
         // Maintain field correctness.
-        $this->on('after-move', function(Box $box, $oldCoords) use ($game) {
+        $this->on('after-move', function(Box $box, $oldCoords, UserInput $input) use ($game) {
             $game->addObject($box);
             $game->clearPoint($oldCoords);
 
-            $game->getState()->incrementPushes();
+            if ($input->reverse) {
+                $game->getState()->decremetPushes();
+            }
+            else {
+                $game->getState()->incrementPushes();
+            }
         });
 
         parent::init($game);

@@ -29,6 +29,7 @@ class UserNumPad extends BaseProvider
             ord('2') => ProviderInterface::DIRECTION_DOWN,
             ord('4') => ProviderInterface::DIRECTION_LEFT,
             ord('6') => ProviderInterface::DIRECTION_RIGHT,
+            ord('0') => ProviderInterface::DIRECTION_BACK,
         ];
     }
 }

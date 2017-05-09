@@ -21,8 +21,12 @@ interface ProviderInterface
     const DIRECTION_DOWN = 2;
     const DIRECTION_LEFT = 3;
     const DIRECTION_RIGHT = 4;
+    const DIRECTION_BACK = 5;
 
     public function init(Game $game);
 
-    public function getLastDirection();
+    /**
+     * @return UserInput User's input data structure.
+     */
+    public function getUserInput();
 }

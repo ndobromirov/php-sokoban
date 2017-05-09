@@ -9,6 +9,7 @@
 namespace Sokoban\Objects;
 
 use Sokoban\Game;
+use Sokoban\InputProvider\UserInput;
 
 /**
  * Description of Player
@@ -46,21 +47,23 @@ class Player extends Base
         return true;
     }
 
-    public function move(Game $game, $direction)
+    public function move(Game $game, UserInput $input)
     {
-        if ($direction) {
-            $this->state = $direction;
+        // Make everything move away for us.
+        if ($input->direction && !$input->pull) {
+            $this->state = $input->direction;
 
-            // Make everything move away for us.
-            $this->trigger('push', [
-                $this,
-                $direction,
-                $this->getDestination($direction),
-            ]);
+            $destination = $this->getDestination($input->direction);
+            $this->trigger('push', [$this, $input, $destination]);
         }
 
         // Then move when it's free (if possible).
-        parent::move($game, $direction);
+        $oldPosition = parent::move($game, $input);
+
+        // Make everything move tawards us.
+        if ($input->direction && $input->pull) {
+            $this->trigger('pull', [$this, $input, $oldPosition]);
+        }
     }
 
     public function init(Game $game)
@@ -69,11 +72,16 @@ class Player extends Base
         $game->on('new-input', [$this, 'move']);
 
         // Maintain field correctness.
-        $this->on('after-move', function(Player $player, $oldCoords) use ($game) {
+        $this->on('after-move', function(Player $player, $oldCoords, UserInput $input) use ($game) {
             $game->addObject($player);
             $game->clearPoint($oldCoords);
 
-            $game->getState()->incrementMoves();
+            if ($input->reverse) {
+                $game->getState()->decrementMoves();
+            }
+            else {
+                $game->getState()->incrementMoves();
+            }
         });
 
         parent::init($game);

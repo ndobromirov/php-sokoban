@@ -12,6 +12,7 @@ use Sokoban\utils\EventsTrait;
 use Sokoban\utils\EventAwareInterface;
 use Sokoban\InputProvider\ProviderInterface;
 use Sokoban\Game;
+use Sokoban\InputProvider\UserInput;
 
 /**
  * Description of Base
@@ -70,19 +71,21 @@ class Base implements EventAwareInterface
         return [$row + $rowDelta, $col + $colDelta];
     }
 
-    public function move(Game $game, $direction)
+    public function move(Game $game, UserInput $input)
     {
         if (!$this->isMovable()) {
             return;
         }
-        $destination = $this->getDestination($direction);
-        if ($game->isFree($destination)) {
-            $oldCoordinates = $this->getCoordinates();
+        $destination = $this->getDestination($input->direction);
+        $oldCoordinates = $this->getCoordinates();
 
-            $this->trigger('before-move', [$this, $destination]);
+        if ($game->isFree($destination)) {
+            $this->trigger('before-move', [$this, $destination, $input]);
             list ($this->row, $this->col) = $destination;
-            $this->trigger('after-move', [$this, $oldCoordinates]);
+            $this->trigger('after-move', [$this, $oldCoordinates, $input]);
         }
+
+        return $oldCoordinates;
     }
 
     public function getId()

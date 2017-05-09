@@ -23,8 +23,11 @@ class LoggingProvider implements ProviderInterface
     private $dir;
 
     private $moves;
-    private $map;
+    private $codingMap;
+    private $decodingMap;
+    private $reverseMap;
     private $moveCode = null;
+    private $reversing;
 
     public function __construct(ProviderInterface $provider, $level, $replaysDir)
     {
@@ -36,11 +39,19 @@ class LoggingProvider implements ProviderInterface
     public function init(Game $game)
     {
         $this->moves = [];
-        $this->map = [
+        $this->codingMap = [
             self::DIRECTION_DOWN => 'd',
             self::DIRECTION_UP => 'u',
             self::DIRECTION_LEFT => 'l',
             self::DIRECTION_RIGHT => 'r',
+        ];
+        $this->decodingMap = array_flip($this->codingMap);
+
+        $this->reverseMap = [
+            self::DIRECTION_UP => self::DIRECTION_DOWN,
+            self::DIRECTION_DOWN => self::DIRECTION_UP,
+            self::DIRECTION_LEFT => self::DIRECTION_RIGHT,
+            self::DIRECTION_RIGHT => self::DIRECTION_LEFT,
         ];
 
         // Proxy the call to the original.
@@ -54,10 +65,13 @@ class LoggingProvider implements ProviderInterface
         }
 
         // Add the code to the log, when player moves.
-        foreach ($game->getPlayers() as $player) {
-            $player->on('after-move', function() {
+        $playerMoveHandler = function() {
+            if (!$this->reversing) {
                 $this->moves[] = $this->moveCode;
-            });
+            }
+        };
+        foreach ($game->getPlayers() as $player) {
+            $player->on('after-move', $playerMoveHandler);
         }
 
         // Handle game success by storing the moves to a file.
@@ -67,13 +81,30 @@ class LoggingProvider implements ProviderInterface
         });
     }
 
-    public function getLastDirection()
+    public function getUserInput()
     {
-        $result = $this->provider->getLastDirection();
-        if ($result !== self::DIRECTION_NONE) {
-            // Hijack the input value.
-            $this->moveCode = $this->map[$result];
+        $result = $this->provider->getUserInput();
+
+        if (($this->reversing = $result->direction === self::DIRECTION_BACK)) {
+            // No more history (we are in initial state).
+            if (($back = array_pop($this->moves)) === null) {
+                $result->direction = self::DIRECTION_NONE;
+                return $result;
+            }
+
+            // Captitals have 6th bit as zero (0).
+            $result->reverse = true;
+            $result->pull = $back != ($move = strtolower($back));
+            $result->direction = $this->reverseMap[$this->decodingMap[$move]];
+
+            return $result;
         }
+
+        // Hijack the input value.
+        if ($result->direction !== self::DIRECTION_NONE) {
+            $this->moveCode = $this->codingMap[$result->direction];
+        }
+
         return $result;
     }
 }

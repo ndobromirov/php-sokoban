@@ -37,8 +37,8 @@ class ReplayInputProvider implements ProviderInterface
         ]);
     }
 
-    public function getLastDirection()
+    public function getUserInput()
     {
-        return (int) $this->moves[$this->moveIndex++];
+        return UserInput::create((int) $this->moves[$this->moveIndex++]);
     }
 }

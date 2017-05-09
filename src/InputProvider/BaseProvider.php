@@ -58,9 +58,9 @@ abstract class BaseProvider implements ProviderInterface
         fclose($this->stream);
     }
 
-    public function getLastDirection()
+    public function getUserInput()
     {
-        $result = $this->lastInput;
+        $result = UserInput::create($this->lastInput);
         $this->lastInput = self::DIRECTION_NONE;
         return $result;
     }

@@ -11,6 +11,7 @@ namespace Sokoban;
 /**
  * Description of GameState
  *
+ * @todo Refactor counters to a designated class and just compose them.
  * @author ndobromirov
  */
 class GameState
@@ -63,6 +64,11 @@ class GameState
         ++$this->pushes;
     }
 
+    public function decremetPushes()
+    {
+        --$this->pushes;
+    }
+
     public function getPushes()
     {
         return $this->pushes;
@@ -71,6 +77,11 @@ class GameState
     public function incrementMoves()
     {
         ++$this->moves;
+    }
+
+    public function decrementMoves()
+    {
+        --$this->moves;
     }
 
     public function getMoves()

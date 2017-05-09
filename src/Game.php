@@ -209,9 +209,9 @@ class Game implements utils\EventAwareInterface
     private function readInput()
     {
         // Handle game state mutations.
-        $direction = $this->inputProvider->getLastDirection();
-        if ($direction !== ProviderInterface::DIRECTION_NONE) {
-            $this->trigger('new-input', [$this, $direction]);
+        $input = $this->inputProvider->getUserInput();
+        if ($input->direction !== ProviderInterface::DIRECTION_NONE) {
+            $this->trigger('new-input', [$this, $input]);
         }
     }
 

@@ -25,10 +25,11 @@ class UserArrows extends BaseProvider
     protected function getKeysMapping()
     {
         return  [
-            65 => ProviderInterface::DIRECTION_UP,
-            66 => ProviderInterface::DIRECTION_DOWN,
-            68 => ProviderInterface::DIRECTION_LEFT,
-            67 => ProviderInterface::DIRECTION_RIGHT,
+            65 => self::DIRECTION_UP,
+            66 => self::DIRECTION_DOWN,
+            68 => self::DIRECTION_LEFT,
+            67 => self::DIRECTION_RIGHT,
+            ord('r') => self::DIRECTION_BACK,
         ];
     }
 }

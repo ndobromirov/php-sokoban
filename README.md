@@ -23,6 +23,11 @@ php play.php 1
 
 ```
 
+## Controlls
+
+The player is controlled with the arrow keys. Reversing moves are is through
+the ```r``` key.
+
 ## Levels
 
 The game levels are plain text files, located under the ```levels``` directory.
