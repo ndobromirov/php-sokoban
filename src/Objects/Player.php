@@ -28,7 +28,7 @@ class Player extends Base
         $this->id = $id;
         $this->name = $name;
 
-        $this->state = rand(0, 3);
+        $this->state = rand(1, 4);
         parent::__construct($row, $col);
     }
 

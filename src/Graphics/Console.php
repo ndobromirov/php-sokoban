@@ -30,13 +30,40 @@ class Console extends Base
 
     public function __construct()
     {
+        // Handling color in terminal.
+        // https://askubuntu.com/questions/558280/changing-colour-of-text-and-background-of-terminal
         $this->mapping = [
-            Wall::class => ['#'],
-            Target::class => ['X'],
-            NullObject::class => [' '],
-            Box::class => ['O', '0'],
-            Player::class => ['+', '^', 'v', '<', '>'],
+            Wall::class => [
+                $this->colorize('##', 124, 124),
+            ],
+            Target::class => [
+                $this->colorize('..', 20),
+            ],
+            NullObject::class => [
+                $this->colorize('  '),
+            ],
+            Box::class => [
+                $this->colorize('[]', 220),
+                $this->colorize('00', 214),
+            ],
+            Player::class => [
+                $this->colorize('++', 20),
+                $this->colorize('^^', 255, 0),
+                $this->colorize('vv', 255, 0),
+                $this->colorize('<<', 255, 0),
+                $this->colorize('>>', 255, 0),
+            ],
         ];
+    }
+
+    private function colorize($content, $bgColor = null, $textColor = null)
+    {
+        return implode('', [
+            $bgColor !== null ? "\e[48;5;{$bgColor}m" : '',
+            $textColor !== null ? "\e[38;5;{$textColor}m" : '',
+            $content,
+            $bgColor !== null || $textColor !== null ? "\e[0m" : '',
+        ]);
     }
 
     public function init()
@@ -49,8 +76,8 @@ class Console extends Base
 
     protected function initBuffer($rows, $cols)
     {
-        $empty = $this->mapping[\Sokoban\Objects\NullObject::class][0];
-        $this->buffer = array_pad([], $rows, str_pad('', $cols, $empty));
+        $empty = $this->mapping[NullObject::class][0];
+        $this->buffer = array_pad([], $rows, array_pad([], $cols, $empty));
 
         // TODO mae it dynamically scalable.
 //        $this->screenWidth = (int) exec('tput cols');
@@ -60,29 +87,31 @@ class Console extends Base
     protected function displayBuffer()
     {
         $this->clearScreen();
-        echo implode(PHP_EOL, array_map([$this, 'joinRow'], $this->buffer));
-    }
-
-    private function joinRow($row)
-    {
-        return implode('', $row);
+        ob_start();
+        foreach ($this->buffer as $collumns) {
+            foreach ($collumns as $ui) {
+                echo $ui;
+            }
+            echo PHP_EOL;
+        }
+        echo ob_get_clean();
     }
 
     protected function renderGameObject(GameObject $object, $row, $col)
     {
-        $ui = $this->mapping[get_class($object)];
-        $this->buffer[$row + 1][$col] = $ui[$object->getStateIndex()];
+        $content = $this->mapping[get_class($object)][$object->getStateIndex()];
+        $this->buffer[$row + 1][$col] = $content;
     }
 
     protected function renderState(GameState $state)
     {
         $lineLength = count($this->buffer[1]);
-        $empty = $this->mapping[\Sokoban\Objects\NullObject::class][0];
-        $message = implode(', ', [
-            "Moves: {$state->getMoves()}",
-            "Pushes: {$state->getPushes()}",
-            "Play time: {$state->getPlayTime()}",
-            "Placed: {$state->getPlacedBoxes()}",
+        $empty = $this->mapping[NullObject::class][0];
+        $message = implode('   ', [
+            " Moves: {$state->getMoves()}",
+            " Pushes: {$state->getPushes()}",
+            " Play time: {$state->getPlayTime()}",
+            " Placed: {$state->getPlacedBoxes()}",
         ]);
 
         array_unshift($this->buffer, str_split(str_pad($message, $lineLength, $empty)));
@@ -92,4 +121,8 @@ class Console extends Base
     {
         system('clear');
     }
+
+
+
+
 }

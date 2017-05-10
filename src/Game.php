@@ -65,8 +65,8 @@ class Game implements utils\EventAwareInterface
         $this->levelLoader = $loader;
 
         $this->field = [];
-        $this->width  = (int) exec('tput cols');
-        $this->height = (int) exec('tput lines') - 1;
+        $this->width  = (int) floor(exec('tput cols') / 2);
+        $this->height = (int) exec('tput lines') - 2;
 
         $this->state = new GameState($this->loop);
     }
