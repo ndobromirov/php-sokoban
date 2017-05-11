@@ -39,9 +39,6 @@ class Game implements utils\EventAwareInterface
     /** @var Loader\LevelLoaderInterface */
     private $levelLoader;
 
-    private $width;
-    private $height;
-
     private $walls = [];
     private $boxes = [];
     private $players = [];
@@ -65,9 +62,6 @@ class Game implements utils\EventAwareInterface
         $this->levelLoader = $loader;
 
         $this->field = [];
-        $this->width  = (int) floor(exec('tput cols') / 2);
-        $this->height = (int) exec('tput lines') - 2;
-
         $this->state = new GameState($this->loop);
     }
 
@@ -103,13 +97,16 @@ class Game implements utils\EventAwareInterface
 
     protected function init()
     {
+        $width = $this->levelLoader->getCollumns();
+        $height = $this->levelLoader->getRows();
+
         $this->inputProvider->init($this);
-        $this->graphics->init();
+        $this->graphics->init($width, $height);
 
         // Initialize empty field.
-        for ($row = 0; $row < $this->height; ++$row) {
+        for ($row = 0; $row < $height; ++$row) {
             $this->field[$row] = [];
-            for ($col = 0; $col < $this->width; ++$col) {
+            for ($col = 0; $col < $width; ++$col) {
                 $this->addObject(new NullObject($row, $col));
             }
         }

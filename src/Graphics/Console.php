@@ -25,9 +25,6 @@ class Console extends Base
 {
     private $mapping;
 
-    private $screenWidth;
-    private $screenHeight;
-
     public function __construct()
     {
         // Handling color in terminal.
@@ -66,22 +63,23 @@ class Console extends Base
         ]);
     }
 
-    public function init()
+    public function init($levelWidth, $levelHeight)
     {
+        parent::init($levelWidth, $levelHeight);
+
         // Stop printing of controll characters in UNIX console.
         system('stty -icanon -echo');
+
         $this->clearScreen();
     }
 
-
-    protected function initBuffer($rows, $cols)
+    protected function initBuffer()
     {
-        $empty = $this->mapping[NullObject::class][0];
-        $this->buffer = array_pad([], $rows, array_pad([], $cols, $empty));
+        $emptyCell = $this->mapping[NullObject::class][0];
+        $emptyRow = array_pad([], $this->screenWidth, $emptyCell);
 
-        // TODO mae it dynamically scalable.
-//        $this->screenWidth = (int) exec('tput cols');
-//        $this->screenHeight = (int) exec('tput lines');
+        $emptyField = array_pad([], $this->screenHeight, $emptyRow);
+        return $emptyField;
     }
 
     protected function displayBuffer()
@@ -117,12 +115,18 @@ class Console extends Base
         array_unshift($this->buffer, str_split(str_pad($message, $lineLength, $empty)));
     }
 
-    private function clearScreen()
+    protected function clearScreen()
     {
         system('clear');
     }
 
+    protected function getScreenWidth()
+    {
+        return (int) floor(exec('tput cols') / 2);
+    }
 
-
-
+    protected function getScreenHeight()
+    {
+        return (int) exec('tput lines') - 2;
+    }
 }

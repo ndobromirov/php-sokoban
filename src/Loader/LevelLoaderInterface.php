@@ -17,4 +17,8 @@ use Sokoban\Game;
 interface LevelLoaderInterface
 {
     public function load(Game $game, $path);
+
+    public function getRows();
+    public function getCollumns();
+
 }

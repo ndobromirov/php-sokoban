@@ -25,6 +25,8 @@ class StandardFormatLoader implements LevelLoaderInterface
     /** @var array */
     private $map;
 
+    private $rows, $collumns;
+
     public function __construct(DecoderInterface $decoder)
     {
         $this->decoder = $decoder;
@@ -44,13 +46,27 @@ class StandardFormatLoader implements LevelLoaderInterface
     public function load(Game $game, $path)
     {
         $contents = file_get_contents($path);
-        $rows = $this->decoder->decode($contents);
+        $rows = array_filter($this->decoder->decode($contents));
         foreach ($rows as $row => $collumns) {
-            foreach (str_split($collumns) as $collumn => $code) {
+            foreach (str_split(rtrim($collumns)) as $collumn => $code) {
                 if (isset($this->map[$code])) {
                     call_user_func([$this, $this->map[$code]], $game, $row, $collumn);
                 }
             }
         }
+
+        // Init dimensions.
+        $this->rows = count($rows);
+        $this->collumns = strlen($rows[0]);
+    }
+
+    public function getRows()
+    {
+        return $this->rows;
+    }
+
+    public function getCollumns()
+    {
+        return $this->collumns;
     }
 }
