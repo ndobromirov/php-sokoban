@@ -16,17 +16,13 @@ namespace Sokoban;
  */
 class GameState
 {
-    /** @var \React\EventLoop\LoopInterface */
-    private $loop;
-
     private $moves = null;
     private $pushes = null;
-    private $playTime = null;
+    private $playStart = null;
     private $placedBoxes = null;
 
-    public function __construct($loop)
+    public function __construct()
     {
-        $this->loop = $loop;
     }
 
     public function init()
@@ -34,13 +30,8 @@ class GameState
         if ($this->moves === null) {
             $this->moves = 0;
             $this->pushes = 0;
-            $this->playTime = 0;
             $this->placedBoxes = 0;
-
-            $this->loop->addPeriodicTimer(1, function() {
-                // Track the time passed in gameplay.
-                ++$this->playTime;
-            });
+            $this->playStart = time();
         }
     }
 
@@ -91,6 +82,6 @@ class GameState
 
     public function getPlayTime()
     {
-        return $this->playTime;
+        return time() - $this->playStart;
     }
 }

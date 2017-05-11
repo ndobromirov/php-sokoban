@@ -62,7 +62,7 @@ class Game implements utils\EventAwareInterface
         $this->levelLoader = $loader;
 
         $this->field = [];
-        $this->state = new GameState($this->loop);
+        $this->state = new GameState();
     }
 
     public function addObject(Objects\Base $object)
