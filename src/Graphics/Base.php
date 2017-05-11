@@ -10,6 +10,8 @@ namespace Sokoban\Graphics;
 
 use Sokoban\Objects\Base as GameObject;
 use Sokoban\GameState;
+use Sokoban\Game;
+
 /**
  * Description of Base
  *
@@ -31,20 +33,18 @@ abstract class Base implements GraphicsInterface
     protected $offsetWidth;
     protected $offsetHeight;
 
-    public function init($levelWidth, $levelHeight)
+    protected $scale;
+    protected $scaleMap;
+
+    public function init(Game $game, $levelWidth, $levelHeight)
     {
         $this->levelWidth = $levelWidth;
         $this->levelHeight = $levelHeight;
+        if ($this->scaleMap === null) {
+            $this->scaleMap = [1 => 1];
+        }
 
-        $this->screenWidth = $this->getScreenWidth();
-        $this->screenHeight = $this->getScreenHeight();
-
-//        die("$this->levelWidth $this->levelHeight $this->screenWidth $this->screenHeight");
-
-        $this->offsetWidth = floor($this->screenWidth / 2) - floor($this->levelWidth / 2);
-        $this->offsetHeight = floor($this->screenHeight / 2) - floor($this->levelHeight / 2);
-
-        $this->emptyBuffer = $this->initBuffer();
+        $this->refreshScale();
     }
 
     public function render(GameState $state, $field)
@@ -70,4 +70,25 @@ abstract class Base implements GraphicsInterface
     abstract protected function getScreenHeight();
     abstract protected function getScreenWidth();
 
+    protected function refreshScale()
+    {
+        $this->screenWidth = $this->getScreenWidth();
+        $this->screenHeight = $this->getScreenHeight();
+
+        $this->scale = floor($this->getScreenHeight() / $this->levelHeight);
+        $this->limitScale();
+
+        $this->screenWidth = floor($this->screenWidth / $this->scaleMap[$this->scale]);
+        $this->offsetWidth = floor($this->screenWidth / 2) - floor($this->levelWidth / 2);
+
+        $this->screenHeight = floor($this->screenHeight / $this->scale);
+        $this->offsetHeight = floor($this->screenHeight / 2) - floor($this->levelHeight / 2);
+
+        $this->emptyBuffer = $this->initBuffer();
+    }
+
+    protected function limitScale()
+    {
+        $this->scale = 1;
+    }
 }

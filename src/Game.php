@@ -90,6 +90,12 @@ class Game implements utils\EventAwareInterface
         }
     }
 
+    /** @return LoopInterface */
+    public function getLoop()
+    {
+        return $this->loop;
+    }
+
     public function getState()
     {
         return $this->state;
@@ -101,7 +107,7 @@ class Game implements utils\EventAwareInterface
         $height = $this->levelLoader->getRows();
 
         $this->inputProvider->init($this);
-        $this->graphics->init($width, $height);
+        $this->graphics->init($this, $width, $height);
 
         // Initialize empty field.
         for ($row = 0; $row < $height; ++$row) {

@@ -9,6 +9,7 @@
 namespace Sokoban\Graphics;
 
 use Sokoban\Objects\Base as GameObject;
+use Sokoban\Game;
 use Sokoban\GameState;
 use Sokoban\Objects\Wall;
 use Sokoban\Objects\Target;
@@ -24,6 +25,8 @@ use Sokoban\Objects\Box;
 class Console extends Base
 {
     private $mapping;
+
+    protected $scaleMap;
 
     public function __construct()
     {
@@ -51,6 +54,10 @@ class Console extends Base
                 $this->colorize('>>', 255, 0),
             ],
         ];
+
+        $this->scaleMap = [
+            1 => 2,
+        ];
     }
 
     private function colorize($content, $bgColor = null, $textColor = null)
@@ -63,12 +70,18 @@ class Console extends Base
         ]);
     }
 
-    public function init($levelWidth, $levelHeight)
+    public function init(Game $game, $levelWidth, $levelHeight)
     {
-        parent::init($levelWidth, $levelHeight);
+        $this->scaleMap = [1 => 2];
+        parent::init($game, $levelWidth, $levelHeight);
 
         // Stop printing of controll characters in UNIX console.
         system('stty -icanon -echo');
+
+        // Handle screen resizing.
+        $game->getLoop()->addPeriodicTimer(0.5, function() {
+            $this->refreshScale();
+        });
 
         $this->clearScreen();
     }
@@ -77,8 +90,8 @@ class Console extends Base
     {
         $emptyCell = $this->mapping[NullObject::class][0];
         $emptyRow = array_pad([], $this->screenWidth, $emptyCell);
-
         $emptyField = array_pad([], $this->screenHeight, $emptyRow);
+
         return $emptyField;
     }
 
@@ -122,11 +135,11 @@ class Console extends Base
 
     protected function getScreenWidth()
     {
-        return (int) floor(exec('tput cols') / 2);
+        return (int) floor(exec('tput cols')) - 10;
     }
 
     protected function getScreenHeight()
     {
-        return (int) exec('tput lines') - 2;
+        return (int) exec('tput lines') - 3;
     }
 }
