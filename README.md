@@ -3,7 +3,7 @@
 This classic game was created as a hobby project with the aim of making a solver
 algorithm against it.
 
-![Level 1 screenshot](https://image.ibb.co/n9ZpyF/Workspace_1_056.png)
+![Level 1 screen shot](https://image.ibb.co/n9ZpyF/Workspace_1_056.png)
 
 ## Requirements
  - Unix OS - The only currently available rendering driver is for Unix console.
@@ -35,6 +35,9 @@ the ```r``` key.
 The game levels are plain text files, located under the ```levels``` directory.
 They should be named in the format [level-number].txt. For example: ```1.txt```.
 Level files are following this [format](http://sokobano.de/wiki/index.php?title=Level_format#Level).
+
+Current levels were taken from the following public repository:
+ - https://github.com/leoliu/sokoban
 
 ### Replays / Solutions
 
