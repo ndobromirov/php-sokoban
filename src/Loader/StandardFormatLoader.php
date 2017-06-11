@@ -57,7 +57,7 @@ class StandardFormatLoader implements LevelLoaderInterface
 
         // Init dimensions.
         $this->rows = count($rows);
-        $this->collumns = strlen($rows[0]);
+        $this->collumns = max(array_map('strlen', $rows));
     }
 
     public function getRows()

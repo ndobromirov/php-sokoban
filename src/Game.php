@@ -145,22 +145,31 @@ class Game implements utils\EventAwareInterface
         $this->init();
 
         // Start the game loop.
-        $this->loop->addPeriodicTimer(0.05, function() {
-            $this->readInput();
-
-            $this->update();
-
-            // Render the UI.
-            $this->graphics->render($this->state, $this->field);
-
-            if ($this->completed) {
-                $this->trigger('level-completed', [$this->state]);
-                $this->loop->stop();
-            }
-        });
+        $this->loop->addPeriodicTimer(0.05, [$this, 'loop']);
 
         $this->loop->run();
     }
+
+    public function loop()
+    {
+        $this->readInput();
+
+        $this->update();
+
+        // Render the UI.
+        $this->graphics->render($this->state, $this->field);
+
+        if ($this->completed) {
+            $this->trigger('level-completed', [$this->state]);
+            $this->stop();
+        }
+    }
+
+    public function stop()
+    {
+        $this->loop->stop();
+    }
+
 
     public function addPlayer(Player $player)
     {
