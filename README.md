@@ -3,6 +3,8 @@
 This classic game was created as a hobby project with the aim of making a solver
 algorithm against it.
 
+![Level 1 screenshot](https://image.ibb.co/n9ZpyF/Workspace_1_056.png)
+
 ## Requirements
  - Unix OS - The only currently available rendering driver is for Unix console.
  - PHP-CLI 5.4+
